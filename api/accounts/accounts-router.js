@@ -15,12 +15,9 @@ router.get('/', async (req, res, next) => {
 
 router.get('/:id', mid.checkAccountId, async (req, res, next) => {
   // DO YOUR MAGIC
-  try{
-    const accounts = await Account.getById(req.params.id)
-    res.json(accounts)
-  } catch(err) {
-    next(err)
-  }
+  //rest of code is set in the middleware, and accont is added to the req obj
+    res.json(req.account)
+ 
 })
 
 router.post('/', mid.checkAccountPayload, mid.checkAccountNameUnique, (req, res, next) => {
