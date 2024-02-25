@@ -41,9 +41,11 @@ try {
   const existing = await db('accounts')
                         .where('name', req.body.name.trim())
                         .first()
-if(!existing) {
-  next({ status: 400, message: 'that name is taken' })
-}
+  if(!existing) {
+    next({ status: 400, message: 'that name is taken' })
+  } else {
+    next()
+  }
 
 
                     
