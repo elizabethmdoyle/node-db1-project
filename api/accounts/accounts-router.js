@@ -1,11 +1,11 @@
-const router = require('express').Router()
-const mid = require('./accounts-middleware');
-const Account = require('./accounts-model');
-
+const express = require('express');
+const router = express.Router();
+const Account = require('./accounts-model')
+const { checkAccountId, checkAccountNameUnique, checkAccountPayload} = require('./accounts-middleware')
 
 router.get('/', async (req, res, next) => {
   // DO YOUR MAGIC
-  try { 
+  try {
     const accounts = await Account.getAll()
     res.json(accounts)
   } catch(err) {
@@ -13,51 +13,56 @@ router.get('/', async (req, res, next) => {
   }
 })
 
-router.get('/:id', mid.checkAccountId, async (req, res, next) => {
-  // DO YOUR MAGIC
-  //rest of code is set in the middleware, and accont is added to the req obj
-    res.json(req.account)
- 
+router.get('/:id', checkAccountId, async (req, res, next) => {// eslint-disable-line
+  res.json(req.account) 
 })
 
-router.post('/', mid.checkAccountPayload, mid.checkAccountNameUnique, async (req, res, next) => {
+router.post('/', 
+checkAccountPayload, 
+checkAccountNameUnique, 
+async (req, res, next) => {
   // DO YOUR MAGIC
-   try{
-    const newAccount = await Account.create(req.body)
-     res.status(201).json(newAccount)
-
-  } catch(err) {
+  try {
+    const newAccount = await Account.create({
+       name: req.body.name.trim(),
+      budget: req.body.budget,
+      })
+    res.status(201).json(newAccount)
+  }catch(err) {
     next(err)
   }
 })
 
-router.put('/:id', mid.checkAccountId, mid.checkAccountNameUnique, mid.checkAccountPayload, async (req, res, next) => {
+router.put('/:id', 
+checkAccountId, 
+checkAccountPayload, 
+async (req, res, next) => {
   // DO YOUR MAGIC
-   try{
-    const updatedAccount = await Account.updateById(req.params.id)
-    res.status(200).json(updatedAccount)
-  } catch(err) {
+  try{ 
+    const updated = await Account.updateById(req.params.id, req.body) 
+    res.status(200).json(updated)
+  }catch(err) {
     next(err)
   }
 });
 
-router.delete('/:id', mid.checkAccountId, async (req, res, next) => {
-  // DO YOUR MAGIC
-
+router.delete('/:id',
+ checkAccountId,
+  async (req, res, next) => {
   try {
     await Account.deleteById(req.params.id)
-      res.json(req.account)
-  } catch(err) {
+    res.json(req.account)
+  }catch(err) {
     next(err)
   }
-  
-});
+})
 
 router.use((err, req, res, next) => { // eslint-disable-line
   // DO YOUR MAGIC
-  //error handling middleware where if the routes above throw an error, it redirects them to this router
-   res.status(err.status || res.status(500).json({ message: err.message}))
-
+  res.status(err.status || 500).json({
+    message: err.message,
+    stack: err.stack
+  })
 })
 
 module.exports = router;
